@@ -88,6 +88,11 @@ class Operation implements ISpecificOperation {
 					return;
 				}
 				$fileId = $event->getObjectId();
+				$userFolder = \OC::$server->getUserFolder();
+				if (empty($userFolder)) {
+					\OC::$server->get(\OCP\ILogger::class)->error('NO USER FOLDER FOR EVENT ' . $eventName);
+					return;
+				}
 				$nodes = \OC::$server->getUserFolder()->getById((int)$fileId);
 			} elseif ($eventName === '\OCP\Files::postRename' || $eventName === '\OCP\Files::postCopy') {
 				/** @var Node $oldNode */
@@ -95,7 +100,11 @@ class Operation implements ISpecificOperation {
 				$nodes = [ $node ];
 			} else {
 				$node = $event->getSubject();
-				$nodes = [ $node ];
+				if (is_array($node)) {
+					$nodes = $node;
+				} else {
+					$nodes = [ $node ];
+				}
 			}
 			/** @var Node $node */
 			foreach ($nodes as $node) {
